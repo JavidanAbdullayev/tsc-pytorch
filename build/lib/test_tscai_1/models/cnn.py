@@ -50,9 +50,9 @@ class Classifier_CNN(nn.Module):
         return x
 
 
-def fit(trainloader, valloader, input_shape, nb_classes, dataset_name, epochs):
+def fit(classifier, trainloader, valloader, input_shape, nb_classes, dataset_name, epochs):
     print('Hi from CNN!')
-    model = Classifier_CNN(input_shape, nb_classes)
+    model = classifier(input_shape, nb_classes)
 
     print(model)
 

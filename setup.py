@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import codecs
 import os
 
-VERSION = '0.0.22'
+VERSION = '0.0.25'
 DESCRIPTION = 'Time series classification using Deep Learning'
 
 
@@ -15,7 +15,7 @@ setup(
     description=DESCRIPTION,
     long_description_content_type="text/markdown",
     packages=find_packages(),
-    install_requires=['numpy', 'pandas', 'sklearn', 'importlib', 'torch', 'torchsummary',],
+    install_requires=['numpy', 'pandas', 'sklearn', 'importlib', 'torch', 'torchsummary', 'test_datasets_1'],
     classifiers=[
         "Development Status :: 1 - Planning",
         "Intended Audience :: Developers",
@@ -25,6 +25,6 @@ setup(
         "Operating System :: Microsoft :: Windows",
     ],
     include_package_data=True,
-    package_data={'': ['data/*.tsv']},
+    # package_data={'': ['data/*.tsv']},
 
 )

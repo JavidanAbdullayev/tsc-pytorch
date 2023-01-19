@@ -118,6 +118,7 @@ def fit(trainloader, valloader, input_shape, nb_classes, dataset_name, epochs):
         print('Test Loss: %.3f | Test Acc: %.3f%% (%d/%d)' % (test_loss / (b_idx + 1), 100. * correct / total, correct, total))
         return test_loss / (b_idx + 1), correct / total
 
+
     final_loss = []
     learning_rates = []
     
@@ -132,6 +133,7 @@ def fit(trainloader, valloader, input_shape, nb_classes, dataset_name, epochs):
     best_model_wts = copy.deepcopy(model.state_dict())
     min_train_loss = np.inf
 
+    # Training function start
     start_time = time.time()    
     for epoch in range(epochs):
         train_loss = train_alone_model(model, epoch)
@@ -143,7 +145,10 @@ def fit(trainloader, valloader, input_shape, nb_classes, dataset_name, epochs):
     
         final_loss.append(train_loss)
         learning_rates.append(optimizer.param_groups[0]['lr'])
-    
+
+    # Training function end
+
+    # Save results
     output_directory = os.path.abspath(os.getcwd()) + '/results_fcn/'
     if os.path.exists(output_directory) == False:
         os.mkdir(output_directory)

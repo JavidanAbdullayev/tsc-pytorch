@@ -176,7 +176,7 @@ def fit(trainloader, valloader, input_shape, nb_classes, dataset_name, epochs):
     learning_rates = []
     
     if epochs < 0:
-        epochs = 20
+        epochs = 1500
     criterion_CE = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001,)
     scheduler = optim.lr_scheduler.OneCycleLR(optimizer, 1e-3, epochs=20, steps_per_epoch=len(trainloader))
