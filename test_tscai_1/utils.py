@@ -7,7 +7,7 @@ from sklearn.preprocessing import LabelEncoder
 import torch
 import test_datasets_1
 from torch.utils.data import DataLoader, TensorDataset
-from constants import *
+from test_tscai_1.constants import *
 
 def read_all_datasets(DATASET_NAMES_2018) -> pd.DataFrame:
 

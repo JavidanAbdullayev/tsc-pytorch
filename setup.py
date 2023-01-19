@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import codecs
 import os
 
-VERSION = '0.0.25'
+VERSION = '0.0.32'
 DESCRIPTION = 'Time series classification using Deep Learning'
 
 

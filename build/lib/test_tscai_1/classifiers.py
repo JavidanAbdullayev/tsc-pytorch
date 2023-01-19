@@ -8,18 +8,21 @@ from importlib import resources
 from test_tscai_1.utils import transform_labels, read_all_datasets, prepare_data
 import torch
 from torch.utils.data import DataLoader, TensorDataset
+
+import torch
+from torch.utils.data import DataLoader, TensorDataset
 import torch
 from torch import nn
 import torch.nn.functional as F
 from torchsummary import summary
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
+from test_tscai_1.constants import *
 
 
-def fit(classifier, trainloader, valloader, input_shape, nb_classes, dataset_name, epochs):
-    print('Hi from FCN!')
+
+def fit(classifier, trainloader, valloader, input_shape, nb_classes, dataset_name, classifier_name, epochs, validation_data=False):
     model = classifier(input_shape, nb_classes)
-
     print(model)
 
     use_cuda = torch.cuda.is_available()                
@@ -27,10 +30,8 @@ def fit(classifier, trainloader, valloader, input_shape, nb_classes, dataset_nam
         torch.cuda.set_device(0)
         model.cuda()
         cudnn.benchmark = True
-
     summary(model, ( input_shape[-2], input_shape[-1]))
     
-
     # Training
     def train_alone_model(net, epoch):
 
@@ -87,8 +88,8 @@ def fit(classifier, trainloader, valloader, input_shape, nb_classes, dataset_nam
     learning_rates = []
     
     if epochs < 0:
-        epochs = 2000
-
+        epochs = number_of_epochs[classifier_name]
+    
     criterion_CE = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001,)
     scheduler = optim.lr_scheduler.OneCycleLR(optimizer, 1e-3, epochs=epochs, steps_per_epoch=len(trainloader))
@@ -101,7 +102,9 @@ def fit(classifier, trainloader, valloader, input_shape, nb_classes, dataset_nam
     start_time = time.time()    
     for epoch in range(epochs):
         train_loss = train_alone_model(model, epoch)
-        test(model)
+        if validation_data:
+            test(model)
+
         if min_train_loss  > train_loss:
             min_train_loss = train_loss
             best_model_wts = copy.deepcopy(model.state_dict())
@@ -112,33 +115,35 @@ def fit(classifier, trainloader, valloader, input_shape, nb_classes, dataset_nam
 
     # Training function end
 
+
     # Save results
-    output_directory = os.path.abspath(os.getcwd()) + '/results_fcn/'
+    output_directory = os.path.abspath(os.getcwd()) + '/results_' + classifier_name + '/'
     if os.path.exists(output_directory) == False:
         os.mkdir(output_directory)
 
     output_directory = output_directory + dataset_name + '/'
+    
     if os.path.exists(output_directory) == False:
         os.mkdir(output_directory)
     else:
         print('DONE')        
 
 
-    torch.save(best_model_wts, output_directory +  'best_teacher_model.pt')
+    torch.save(best_model_wts, output_directory +  'best_model.pt')
 
 
     # Save Logs
     duration = time.time() - start_time
-    best_teacher = classifier(input_shape, nb_classes)
-    best_teacher.load_state_dict(best_model_wts)
-    best_teacher.cuda()
+    best_model = classifier(input_shape, nb_classes)
+    best_model.load_state_dict(best_model_wts)
+    best_model.cuda()
     
     print('Best Model Accuracy in below ')
     start_test_time = time.time()
-    test(best_teacher)
+    test(best_model)
     test_duration = time.time() - start_test_time
 
-    print(test(best_teacher))
+    print(test(best_model))
 
     df = pd.DataFrame(list(zip(final_loss, learning_rates)), columns =['loss', 'learning_rate'])
     index_best_model = df['loss'].idxmin()
@@ -148,44 +153,37 @@ def fit(classifier, trainloader, valloader, input_shape, nb_classes, dataset_nam
     df.to_csv(output_directory + 'history.csv', index=False)
     df_best_model.to_csv(output_directory + 'df_best_model.csv', index=False)
 
-    loss_, acc_ = test(best_teacher)
+    loss_, acc_ = test(best_model)
     df_metrics = pd.DataFrame(list(zip([min_train_loss], [acc_], [duration], [test_duration])), columns =['Loss', 'Accuracy', 'Duration', 'Test Duration'])
     df_metrics.to_csv(output_directory + 'df_metrics.csv', index=False)
 
 
 
-def Classifiers(datasets_dict, dataset_names, classifier_names, epochs=-1, batch_size=-1):
-    print('\n\n\n\n')
-    print('Dataset names: ', dataset_names)
-    print('Classifier name: ', classifier_names)
-    print('\n\n\n\n')
 
+def Classifiers(datasets_dict, classifier_names, epochs=-1, batch_size=-1, validation_data=False):
+
+    dataset_names = list(datasets_dict.keys())
+    
     for dataset_name in dataset_names:
         for classifier_name in classifier_names:
-            print('Classifier Type: ', classifier_name)   
             trainloader, valloader, input_shape, nb_classes = prepare_data(datasets_dict, dataset_name, classifier_name, batch_size)
             
             if classifier_name == 'fcn':
                 from test_tscai_1.models import fcn
-                print('Everything is ok and now FCN is calling')
-                fcn.fit(trainloader, valloader, input_shape, nb_classes, dataset_name, epochs, )
+                fit(fcn.Classifier_FCN, trainloader, valloader, input_shape, nb_classes, dataset_name, classifier_name, epochs, validation_data=validation_data)
 
             elif classifier_name == 'cnn':
                 from test_tscai_1.models import cnn
-                print('Everything is ok and now CNN is calling')
-                cnn.fit(trainloader, valloader, input_shape, nb_classes, dataset_name, epochs)
+                fit(cnn.Classifier_CNN, trainloader, valloader, input_shape, nb_classes, dataset_name, classifier_name, epochs, validation_data=validation_data)
 
             elif classifier_name == 'mlp':
                 from test_tscai_1.models import mlp
-                print('Everything is ok and now MLP is calling')
-                mlp.fit(trainloader, valloader, input_shape, nb_classes, dataset_name, epochs)
+                fit(mlp.Classifier_MLP, trainloader, valloader, input_shape, nb_classes, dataset_name, classifier_name, epochs, validation_data=validation_data)
 
             elif classifier_name == 'resnet':
                 from test_tscai_1.models import resnet
-                print('Everything is ok and now RESNET is calling')
-                resnet.fit(trainloader, valloader, input_shape, nb_classes, dataset_name, epochs)
+                fit(resnet.Classifier_RESNET, trainloader, valloader, input_shape, nb_classes, dataset_name, classifier_name, epochs, validation_data=validation_data)
 
             elif classifier_name == 'inception':
                 from test_tscai_1.models import inception
-                print('Everything is ok and now INCEPTION is calling')
-                inception.fit(trainloader, valloader, input_shape, nb_classes, dataset_name, epochs)
+                fit(inception.Classifier_INCEPTION, trainloader, valloader, input_shape, nb_classes, dataset_name, classifier_name, epochs, validation_data=validation_data)

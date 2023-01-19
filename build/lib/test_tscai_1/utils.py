@@ -7,7 +7,7 @@ from sklearn.preprocessing import LabelEncoder
 import torch
 import test_datasets_1
 from torch.utils.data import DataLoader, TensorDataset
-
+from test_tscai_1.constants import *
 
 def read_all_datasets(DATASET_NAMES_2018) -> pd.DataFrame:
 
@@ -51,14 +51,13 @@ def prepare_data(datasets_dict, dataset_name, classifier_name, batch_size):
         if classifier_name == 'fcn':
             mini_batch_size = int(min(x_train.shape[0]/10, 16))
         elif classifier_name == 'cnn':
-            mini_batch_size = 16
+            mini_batch_size = number_of_batches['cnn']
         elif classifier_name == 'mlp':
             mini_batch_size = int(min(x_train.shape[0]/10, 16))
         elif classifier_name == 'resnet':
             mini_batch_size = int(min(x_train.shape[0]/10, 16))
-
         elif classifier_name == 'inception':
-            mini_batch_size = 64
+            mini_batch_size = number_of_batches['inception']
 
 
     trainloader = DataLoader(

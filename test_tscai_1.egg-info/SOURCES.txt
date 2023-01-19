@@ -1,6 +1,7 @@
 setup.py
 test_tscai_1/__init__.py
 test_tscai_1/classifiers.py
+test_tscai_1/constants.py
 test_tscai_1/dataloaders.py
 test_tscai_1/utils.py
 test_tscai_1.egg-info/PKG-INFO
